@@ -1,0 +1,204 @@
+{
+  "name": "BTC Forecast Alert - WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Cada 3 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5000/signal",
+        "method": "GET",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-flask",
+      "name": "Consultar Flask API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nif (data.status === 'pendiente') {\n  return [{ json: { action: 'SKIP', reason: 'Forecast aun no disponible' } }];\n}\n\nconst signal = data.signal;\nconst gainPct = data.expected_gain_pct;\nconst threshold = data.min_gain_threshold_pct;\n\nreturn [{\n  json: {\n    action: signal,\n    gain_pct: gainPct,\n    threshold: threshold,\n    current_price: data.current_price,\n    predicted_price: data.predicted_price,\n    best_time: data.best_time,\n    modelo: data.modelo,\n    generado_en: data.generado_en,\n    message: signal === 'BUY'\n      ? `📈 *OPORTUNIDAD BTC DETECTADA*\\n\\n💰 Precio actual: $${data.current_price.toLocaleString()}\\n🎯 Mejor momento: ${data.best_time}\\n📊 Precio esperado: $${data.predicted_price.toLocaleString()}\\n📈 Ganancia esperada: +${gainPct}%\\n🤖 Modelo: ${data.modelo}\\n\\n⚠️ Verifica antes de invertir.`\n      : `📊 BTC - Sin oportunidad\\n\\n💰 Precio actual: $${data.current_price.toLocaleString()}\\n📉 Ganancia esperada: ${gainPct}% (umbral: ${threshold}%)\\n⏳ Esperando mejor momento...`\n  }\n}];"
+      },
+      "id": "code-decision",
+      "name": "Procesar Senial",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-buy",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "BUY",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-buy",
+      "name": "Es BUY?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.callmebot.com/whatsapp.php",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "51931548132"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "name": "apikey",
+              "value": ""
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "callmebot-buy",
+      "name": "Enviar ALERTA WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.callmebot.com/whatsapp.php",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "51931548132"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "name": "apikey",
+              "value": ""
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "callmebot-hold",
+      "name": "Loguear HOLD",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 420],
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Cada 3 minutos": {
+      "main": [
+        [
+          {
+            "node": "Consultar Flask API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Flask API": {
+      "main": [
+        [
+          {
+            "node": "Procesar Senial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Senial": {
+      "main": [
+        [
+          {
+            "node": "Es BUY?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es BUY?": {
+      "main": [
+        [
+          {
+            "node": "Enviar ALERTA WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loguear HOLD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2026-07-20T00:00:00.000Z",
+      "updatedAt": "2026-07-20T00:00:00.000Z",
+      "id": "1",
+      "name": "btc-forecast"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-07-20T00:00:00.000Z",
+  "versionId": "2.0"
+}

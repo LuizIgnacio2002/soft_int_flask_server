@@ -1,0 +1,39 @@
+model:
+  name: "btc-forecast"
+  window: 72
+  horizon: 24
+  interval: "1h"
+  period: "730d"
+  train_split: 0.8
+  val_split: 0.9
+
+training:
+  epochs: 10
+  batch_size: 32
+  patience: 3
+  models:
+    - naive
+    - lstm
+    - gru
+  lstm_units: [64, 32]
+  gru_units: [64, 32]
+  dense_units: 32
+  learning_rate: 0.001
+  random_seed: 42
+
+mlflow:
+  tracking_uri: "http://localhost:5001"
+  backend_store_uri: "sqlite:///./mlflow.db"
+  experiment_name: "btc-forecast"
+  artifact_location: "./mlruns"
+  registry_model_name: "btc-forecast"
+
+serving:
+  host: "0.0.0.0"
+  port: 5000
+  update_interval_seconds: 180
+  model_stage: "Production"
+
+alert:
+  min_gain_pct: 1.0
+  check_interval_seconds: 180

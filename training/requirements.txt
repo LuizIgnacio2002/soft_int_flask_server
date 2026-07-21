@@ -1,0 +1,8 @@
+mlflow>=2.10
+yfinance
+pandas
+numpy
+scikit-learn
+tensorflow
+matplotlib
+pyyaml

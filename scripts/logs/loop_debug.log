@@ -1,0 +1,21 @@
+[2026-07-21T01:51:49.484542+00:00] === Starting loop_prediccion debug ===
+[2026-07-21T01:51:51.815917+00:00] Loading model...
+[2026-07-21T01:51:54.166887+00:00] Model: v2, run: af115396333340d0a9be8d6489e4ba43
+[2026-07-21T01:51:56.447804+00:00] Bundle loaded: type=Naive
+[2026-07-21T01:51:56.448820+00:00] Running first iteration...
+[2026-07-21T01:51:56.449618+00:00]   Downloading prices...
+[2026-07-21T01:51:57.574261+00:00]   Got 145 data points
+[2026-07-21T01:51:57.574885+00:00]   Using last 72 values
+[2026-07-21T01:51:57.575506+00:00]   Predicting...
+[2026-07-21T01:51:57.595331+00:00]   Prediction done: $65,240.34 -> $65,240.34
+[2026-07-21T01:51:57.600582+00:00]   Signal: HOLD | Gain: 0.000% | Best: $65,240.34
+[2026-07-21T01:51:57.601077+00:00]   Payload: {
+  "signal": "HOLD",
+  "expected_gain_pct": 0.0,
+  "current_price": 65240.34,
+  "predicted_price": 65240.34,
+  "best_time": "2026-07-21T02:00:00+00:00",
+  "modelo": "naive",
+  "modelo_version": 2
+}
+[2026-07-21T01:51:57.601374+00:00] === First iteration complete ===

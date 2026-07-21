@@ -1,0 +1,53 @@
+name: BTC Forecast CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install deps
+        run: |
+          pip install -r training/requirements.txt
+          pip install -r serving/requirements.txt
+          pip install pytest
+
+      - name: Validate config
+        run: |
+          python -c "
+          import yaml
+          with open('config.yaml') as f:
+              cfg = yaml.safe_load(f)
+          assert cfg['model']['window'] == 72
+          assert cfg['model']['horizon'] == 24
+          assert cfg['serving']['port'] == 5000
+          assert cfg['mlflow']['experiment_name'] == 'btc-forecast'
+          assert cfg['alert']['min_gain_pct'] >= 0.5
+          print('Config OK')
+          "
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+      - name: Validate code structure
+        run: |
+          test -f training/train.py && echo "training/train.py OK"
+          test -f serving/main.py && echo "serving/main.py OK"
+          test -f mlops/register_model.py && echo "mlops/register_model.py OK"
+          test -f mlops/import_existing_model.py && echo "mlops/import_existing_model.py OK"
+          test -f n8n/workflows/btc_alert.json && echo "n8n workflow OK"
+          test -f scripts/retrain.bat && echo "retrain script OK"
+          test -f config.yaml && echo "config OK"
+          echo "All files present"

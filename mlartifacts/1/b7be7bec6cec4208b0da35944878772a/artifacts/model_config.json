@@ -1,0 +1,10 @@
+{
+  "window": 72,
+  "horizon": 24,
+  "best_model": "naive",
+  "modelo_tipo": "Naive",
+  "metrics": {
+    "mape": 1.02
+  },
+  "timestamp": "2026-07-20T23:09:02.990715+00:00"
+}
